@@ -1,0 +1,135 @@
+<div class="text-start container-sm">
+  <h2>{{ createMode ? "Add Video Game" : "Edit Video Game" }}</h2>
+  <form [formGroup]="videoGameForm" (ngSubmit)="onSubmit()" novalidate>
+    <div class="mb-3">
+      <label for="title" class="form-label">Title</label>
+      <input
+        id="title"
+        class="form-control"
+        type="text"
+        formControlName="title"
+        maxlength="255"
+        [class.is-invalid]="formSubmitted && controls['title'].invalid"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      <textarea
+        id="description"
+        class="form-control"
+        type="text"
+        formControlName="description"
+        maxlength="400"
+        [class.is-invalid]="formSubmitted && controls['description'].invalid"
+      ></textarea>
+    </div>
+
+    <div class="mb-3">
+      <label for="release-date" class="form-label">Release Date</label>
+      <input
+        id="release-date"
+        class="form-control"
+        type="date"
+        formControlName="releaseDate"
+        [class.is-invalid]="formSubmitted && controls['releaseDate'].invalid"
+      />
+    </div>
+
+    <div class="mb-3">
+      <label for="price" class="form-label">Price</label>
+      <div class="input-group">
+        <span class="input-group-text">$</span>
+        <input
+          id="price"
+          class="form-control"
+          type="text"
+          formControlName="price"
+          [class.is-invalid]="formSubmitted && controls['price'].invalid"
+        />
+      </div>
+      <div
+        *ngIf="formSubmitted && controls['price'].hasError('pattern')"
+        class="invalid-feedback d-block"
+      >
+        Must be a valid price
+      </div>
+    </div>
+
+    <div class="mb-3">
+      <label for="age-rating" class="form-label">Age Rating</label>
+      <select
+        id="age-rating"
+        formControlName="ageRating"
+        class="form-control"
+        [class.is-invalid]="formSubmitted && controls['ageRating'].invalid"
+      >
+        <option *ngFor="let ar of ageRatings" [ngValue]="ar.id">
+          {{ ar.description }}
+        </option>
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label for="platform" class="form-label">Platform</label>
+      <select
+        id="platform"
+        formControlName="platform"
+        class="form-control"
+        [class.is-invalid]="formSubmitted && controls['platform'].invalid"
+      >
+        <option *ngFor="let p of platforms" [ngValue]="p.id">
+          {{ p.name }}
+        </option>
+      </select>
+    </div>
+
+    <div formArrayName="genres" class="mb-3">
+      <label for="genres" class="form-label">Genres</label>
+      <div
+        *ngIf="
+          formSubmitted && controls['genres'].hasError('atLeastOneGenreChecked')
+        "
+        class="invalid-feedback d-block"
+      >
+        Select at least 1 Genre
+      </div>
+      <div *ngFor="let genre of genres; let i = index" class="form-check">
+        <input
+          id="genres_{{ i }}"
+          class="form-check-input"
+          type="checkbox"
+          [formControlName]="i"
+        />
+        <label for="genres_{{ i }}" class="form-check-label">{{
+          genre.name
+        }}</label>
+      </div>
+    </div>
+
+    <app-file-upload
+      [imageId]="imageId"
+      [imageUrl]="imageUrl"
+      (onImageChange)="onFileUploaded($event)"
+    ></app-file-upload>
+
+    <div class="mt-5 d-flex gap-3">
+      <button
+        class="btn btn-primary"
+        type="submit"
+        [disabled]="isFormSubmitting"
+      >
+        <ng-container *ngIf="!isFormSubmitting; else isSubmitting">{{
+          createMode ? "Add video game" : "Update video game"
+        }}</ng-container>
+        <ng-template #isSubmitting
+          ><span class="spinner-grow spinner-grow-sm" aria-hidden="true"></span>
+          <span role="status">Saving...</span></ng-template
+        >
+      </button>
+      <a role="button" routerLink="/catalog" class="btn btn-secondary"
+        >Cancel</a
+      >
+    </div>
+  </form>
+</div>

@@ -1,0 +1,45 @@
+<div *ngIf="!imageId">
+  <div>
+    <div class="mb-3">
+      <label for="file-upload" class="form-label">Image to display</label>
+      <input
+        id="file-upload"
+        class="file-upload-input form-control"
+        type="file"
+        (change)="onChange($event)"
+      />
+    </div>
+    <!-- <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="onUpload()"
+      [disabled]="loading"
+    >
+      Upload
+    </button> -->
+  </div>
+
+  <div *ngIf="loading" class="d-flex align-items-center">
+    <strong role="status">Uploading...</strong>
+    <div class="spinner-border ms-auto" aria-hidden="true"></div>
+  </div>
+</div>
+
+<div *ngIf="imageId && imageUrl">
+  <div class="mb-3">
+    <label class="form-label">Image to display</label>
+    <div><img [src]="imageUrl" class="videogame-image" /></div>
+  </div>
+  <button
+    type="button"
+    class="btn btn-secondary"
+    (click)="onRemovePhoto()"
+    [disabled]="isRemoving"
+  >
+    Remove Photo
+  </button>
+  <div *ngIf="isRemoving" class="d-flex align-items-center">
+    <strong role="status">Removing file...</strong>
+    <div class="spinner-border ms-auto" aria-hidden="true"></div>
+  </div>
+</div>
