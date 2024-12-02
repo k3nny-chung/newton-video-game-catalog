@@ -4,13 +4,14 @@ import { VideoGameService } from '../services/video-game.service';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
+  combineLatestWith,
   debounceTime,
   distinctUntilChanged,
   Observable,
   of,
   startWith,
+  Subject,
   switchMap,
-  tap,
 } from 'rxjs';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
@@ -30,6 +31,7 @@ export class VideoGameCatalogComponent implements OnInit {
   pageNumber = 1;
   pageSize = 6;
   isLoading = false;
+  private pageChange$ = new Subject<number>();
 
   constructor(private videoGameService: VideoGameService) {}
 
@@ -38,8 +40,9 @@ export class VideoGameCatalogComponent implements OnInit {
       startWith(''),
       debounceTime(this.DEBOUNCE_TIME),
       distinctUntilChanged(),
-      switchMap((title) =>
-        this.fetchData(title, this.pageNumber, this.pageSize)
+      combineLatestWith(this.pageChange$.pipe(startWith(1))),
+      switchMap(([title, pageNumber]) =>
+        this.fetchData(title, pageNumber, this.pageSize)
       )
     );
   }
@@ -53,6 +56,10 @@ export class VideoGameCatalogComponent implements OnInit {
           this.videoGames = response.results;
           this.totalCount = response.totalCount;
           this.isLoading = false;
+          if (!response.results?.length) {
+            this.setPage(1);
+          }
+
           return of(response.results);
         })
       );
@@ -62,14 +69,17 @@ export class VideoGameCatalogComponent implements OnInit {
     return Math.ceil(this.totalCount / this.pageSize);
   }
 
+  setPage(pageNumber: number) {
+    this.pageNumber = pageNumber;
+    this.pageChange$.next(this.pageNumber);
+  }
+
   nextPage() {
     if (this.pageNumber > this.totalPages()) {
       return;
     }
 
-    this.pageNumber++;
-    const title = this.titleSearchControl.value;
-    this.searchResults$ = this.fetchData(title, this.pageNumber, this.pageSize);
+    this.setPage(this.pageNumber + 1);
   }
 
   prevPage() {
@@ -77,8 +87,6 @@ export class VideoGameCatalogComponent implements OnInit {
       return;
     }
 
-    this.pageNumber--;
-    const title = this.titleSearchControl.value;
-    this.searchResults$ = this.fetchData(title, this.pageNumber, this.pageSize);
+    this.setPage(this.pageNumber - 1);
   }
 }
