@@ -4,16 +4,15 @@ import { VideoGameService } from '../services/video-game.service';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import {
+  BehaviorSubject,
   combineLatestWith,
   debounceTime,
   distinctUntilChanged,
   Observable,
   of,
-  startWith,
-  Subject,
   switchMap,
 } from 'rxjs';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-video-game-catalog',
@@ -24,23 +23,22 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 })
 export class VideoGameCatalogComponent implements OnInit {
   private DEBOUNCE_TIME = 350;
-  titleSearchControl = new FormControl();
   videoGames: VideoGame[] = [];
   searchResults$!: Observable<VideoGame[]>;
   totalCount = 0;
   pageNumber = 1;
   pageSize = 6;
   isLoading = false;
-  private pageChange$ = new Subject<number>();
+  private titleSearchTerms$ = new BehaviorSubject('');
+  private pageChange$ = new BehaviorSubject(1);
 
   constructor(private videoGameService: VideoGameService) {}
 
   ngOnInit(): void {
-    this.searchResults$ = this.titleSearchControl.valueChanges.pipe(
-      startWith(''),
+    this.searchResults$ = this.titleSearchTerms$.pipe(
       debounceTime(this.DEBOUNCE_TIME),
       distinctUntilChanged(),
-      combineLatestWith(this.pageChange$.pipe(startWith(1))),
+      combineLatestWith(this.pageChange$),
       switchMap(([title, pageNumber]) =>
         this.fetchData(title, pageNumber, this.pageSize)
       )
@@ -65,13 +63,19 @@ export class VideoGameCatalogComponent implements OnInit {
       );
   }
 
+  searchTitle(title: string) {
+    this.titleSearchTerms$.next(title);
+  }
+
   totalPages(): number {
     return Math.ceil(this.totalCount / this.pageSize);
   }
 
   setPage(pageNumber: number) {
-    this.pageNumber = pageNumber;
-    this.pageChange$.next(this.pageNumber);
+    if (this.pageNumber !== pageNumber) {
+      this.pageNumber = pageNumber;
+      this.pageChange$.next(this.pageNumber);
+    }
   }
 
   nextPage() {

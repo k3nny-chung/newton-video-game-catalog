@@ -3,7 +3,8 @@
     type="text"
     class="form-control"
     placeholder="Search by title"
-    [formControl]="titleSearchControl"
+    #titleSearchInput
+    (input)="searchTitle(titleSearchInput.value)"
   />
 
   <div class="mt-3">
